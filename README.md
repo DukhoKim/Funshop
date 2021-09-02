@@ -71,10 +71,10 @@
 ![m4](https://user-images.githubusercontent.com/87048674/131806074-bdb9419a-7724-4191-bad1-b26527186994.png)
 
 - View 추가 및 Bounded Context 묶기  
-(이미지)  
+![m6](https://user-images.githubusercontent.com/87048674/131864679-ea58f42a-8f5b-4990-ab3b-77c47c30eefd.png)
 
 - 완성 모형: Pub/Sub, Req/Res 추가  
-(이미지)   
+![m7](https://user-images.githubusercontent.com/87048674/131864674-65e51fa9-a8d1-4f58-a4e8-7383eaa98b5e.png)
 
 
 ## 기능적/비기능적 요구사항 커버 여부 검증
