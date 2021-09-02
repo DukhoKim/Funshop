@@ -200,7 +200,7 @@ siege -c10 -t10S -v --content-type "application/json" 'http://order:8080/orders 
 ```
 ![CB3](https://user-images.githubusercontent.com/87048674/131787487-c97832ed-75de-405a-af53-3ca61b2b335a.png)
 
-주문 요청이 과도할 경우 Circuit Breaker에 의하여 적절히 회로가 열리고 닫히면서, Payment 등으로 장애가 확대되지 않도록 자원을 보호하고 있음을 보여줌.
+주문 요청이 과도할 경우 Circuit Breaker에 의하여 적절히 회로가 열리고 닫히면서, Payment 등으로 장애가 확대되지 않도록 자원을 보호하고 있음을 확인.
 
 
 
