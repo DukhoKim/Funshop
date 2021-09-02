@@ -12,12 +12,11 @@
 - 분석/설계  
 
 - 구현  
-     · DDD 의 적용  
-     · Saga  
+     · DDD 의 적용       
      · CQRS  
      · Correlation  
      · Req/Resp  
-     · Gateway(완료)  
+     · Gateway  
      · Polyglot  
 
 - 운영  
@@ -210,8 +209,6 @@ public interface OrderRepository extends PagingAndSortingRepository<Order, Long>
 http http~~
 ```
 
-## Saga  
-
 ## CQRS  
 
 ## Correlation  
@@ -262,6 +259,70 @@ server:
 
 
 ## Polyglot  
+
+Polyglot Persistence를 위해 h2datase를 hsqldb로 변경
+```
+
+		<dependency>
+			<groupId>org.hsqldb</groupId>
+			<artifactId>hsqldb</artifactId>
+			<scope>runtime</scope>
+		</dependency>
+<!--
+		<dependency>
+			<groupId>com.h2database</groupId>
+			<artifactId>h2</artifactId>
+			<scope>runtime</scope>
+		</dependency>
+-->
+
+# 변경/재기동 후 예약 주문
+http localhost:8081/orders name="lee" cardNo=1 status="order started"
+
+HTTP/1.1 201 
+Content-Type: application/json;charset=UTF-8
+Date: Wed, 18 Aug 2021 09:41:30 GMT
+Location: http://localhost:8081/orders/1
+Transfer-Encoding: chunked
+
+{
+    "_links": {
+        "order": {
+            "href": "http://localhost:8081/orders/1"
+        },
+        "self": {
+            "href": "http://localhost:8081/orders/1"
+        }
+    },
+    "cardNo": 1,
+    "name": "lee",
+    "status": "order started"
+}
+
+
+# 저장이 잘 되었는지 조회
+http localhost:8081/orders/1
+
+HTTP/1.1 200
+Content-Type: application/hal+json;charset=UTF-8    
+Date: Wed, 18 Aug 2021 09:42:25 GMT
+Transfer-Encoding: chunked
+
+{
+    "_links": {
+        "order": {
+            "href": "http://localhost:8081/orders/1"
+        },
+        "self": {
+            "href": "http://localhost:8081/orders/1"
+        }
+    },
+    "cardNo": 1,
+    "name": "lee",
+    "status": "order started"
+}
+```
+
 
 # 운영  
 
