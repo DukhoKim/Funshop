@@ -113,7 +113,101 @@ Inbound adaptor와 Outbound adaptor를 구분함
 
 ## DDD 의 적용  
 - 각 서비스내에 도출된 핵심 Aggregate Root 객체를 Entity 로 선언하였다.
+```
+package funshop;
 
+import javax.persistence.*;
+import org.springframework.beans.BeanUtils;
+import java.util.List;
+import java.util.Date;
+
+@Entity
+@Table(name="Order_table")
+public class Order {
+
+    @Id
+    @GeneratedValue(strategy=GenerationType.AUTO)
+    private Long id;
+    private String name;
+    private Long cardNo;
+    private String status;
+
+    @PostPersist
+    public void onPostPersist(){
+        Ordered ordered = new Ordered();
+        BeanUtils.copyProperties(this, ordered);
+        ordered.publishAfterCommit();
+
+        funshop.external.PaymentList paymentList = new funshop.external.PaymentList();
+                
+        System.out.println("this.id() : " + this.id);
+        paymentList.setOrderId(this.id);
+        paymentList.setStatus("Payment Complete");
+        paymentList.setCardNo(this.cardNo);      
+        
+        
+        OrderApplication.applicationContext.getBean(funshop.external.PaymentListService.class)
+            .pay(paymentList);
+
+    }
+    @PostUpdate
+    public void onPostUpdate(){
+        OrderCanceled orderCanceled = new OrderCanceled();
+        BeanUtils.copyProperties(this, orderCanceled);
+        orderCanceled.publishAfterCommit();
+
+    }
+    @PrePersist
+    public void onPrePersist(){
+    }
+
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+    public Long getCardNo() {
+        return cardNo;
+    }
+
+    public void setCardNo(Long cardNo) {
+        this.cardNo = cardNo;
+    }
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
+    }
+}
+```
+- Entity Pattern 과 Repository Pattern 을 적용하여 JPA 를 통하여 다양한 데이터소스 유형 (RDB or NoSQL) 에 대한 별도의 처리가 없도록 데이터 접근 어댑터를 자동 생성하기 위하여 Spring Data REST 의 RestRepository 를 적용하였다  
+```
+package funshop;
+
+import org.springframework.data.repository.PagingAndSortingRepository;
+import org.springframework.data.rest.core.annotation.RepositoryRestResource;
+
+@RepositoryRestResource(collectionResourceRel="orders", path="orders")
+public interface OrderRepository extends PagingAndSortingRepository<Order, Long>{
+
+}
+
+```
+- 적용 후 REST API 의 테스트
+```
+http http~~
+```
 
 ## Saga  
 
