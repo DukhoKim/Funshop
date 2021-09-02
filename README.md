@@ -69,10 +69,10 @@
 - Aggregate 부착  
 (이미지)  
 
-- View 추가 및 Bounded Context 묶기
+- View 추가 및 Bounded Context 묶기  
 (이미지)  
 
-- 완성 모형: Pub/Sub, Req/Res 추가
+- 완성 모형: Pub/Sub, Req/Res 추가  
 (이미지)   
 
 
