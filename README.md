@@ -230,7 +230,7 @@ kubectl autoscale deployment cart --cpu-percent=50 --min=1 --max=10
 ```
 
 - Order 서비스를 통해서 Cart 에 부하를 주어, 스케일 아웃 정상작동을 확인.
-()
+![autoscale1](https://user-images.githubusercontent.com/87048674/131791502-15bbef50-c400-4e18-8dec-ca73b61f2fb9.png)
 
 
 
