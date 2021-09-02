@@ -25,7 +25,7 @@
      · Deploy(완료)  
      · Circuit Breaker  
      · Autoscale (HPA)  
-     · Zero-Downtime deploy (readiness probe)(완료)   
+     · Zero-Downtime deploy (Readiness probe)(완료)   
      · Persistence Volume  
      · Self-healing(Liveness probe)  
      
@@ -155,7 +155,7 @@ kubectl expose deploy gateway --type=LoadBalancer --port=8080 -n funshop
 
 ## Zero-Downtime deploy (readiness probe)
 
-무정지 배포 TEST 비교를 위하여 readiness probe 설정이 없는 버전(deployment_readiness_v2.yml)의 yml과 readiness probe 설정이 있는 버전(deployment_readiness_v3.yml)의 yml을 준비한다.
+무정지 배포 TEST 비교를 위하여 readiness probe 설정이 없는 버전(deployment_readiness_v2.yml)의 .yml과 readiness probe 설정이 있는 버전(deployment_readiness_v3.yml)의 .yml을 준비한다.
 
 - deployment_readiness_v2.yml : customer 배포(readiness 설정없음, image:v2) 
 ```
@@ -250,3 +250,37 @@ spec:
 
 - Readiness probe 설정이 있는 버전(deployment_readiness_v3.yml) 배포시 무중단 확인
 ![readiness2](https://user-images.githubusercontent.com/87048674/131773317-4ec97bee-0afd-400f-92dc-09068c537215.png)
+배포기간 동안 Availability 가 변화없기 때문에 무정지 재배포가 성공한 것으로 확인.
+
+
+## Self-healing(Liveness probe)  
+
+Liveness TEST를 위한 .yml 준비하여 콘테이너 실행 후 /tmp/healthy 파일을 만들고, 90초 후 삭제하여 livenessProbe에 'cat /tmp/healthy'으로 검증하도록 함
+```
+deployment_liveness.yml : customer 배포
+..(생략)..
+
+      containers:
+        - name: customer
+          image: 052937454741.dkr.ecr.ap-northeast-2.amazonaws.com/user02-customer:v1
+          args:
+          - /bin/sh
+          - -c
+          - touch /tmp/healthy; sleep 90; rm -rf /tmp/healthy; sleep 600
+          ports:
+            - containerPort: 8080
+          livenessProbe:
+            exec:
+              command:
+              - cat
+              - /tmp/healthy
+            initialDelaySeconds: 10
+            timeoutSeconds: 2
+            periodSeconds: 5
+            failureThreshold: 5
+
+..(생략)..
+```
+컨테이너 실행 후 90초 동인은 정상이나 이후 /tmp/healthy 파일이 삭제되어 livenessProbe에서 실패를 리턴하게 됨
+- watch kubectl get pod 로 모니터링
+
