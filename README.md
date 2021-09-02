@@ -23,7 +23,7 @@
 
 - 운영  
      · Deploy(완료)  
-     · Circuit Breaker  
+     · Circuit Breaker(완료)    
      · Autoscale (HPA)  
      · Zero-Downtime deploy (Readiness probe)(완료)   
      · Persistence Volume(완료)  
@@ -201,6 +201,36 @@ siege -c10 -t10S -v --content-type "application/json" 'http://order:8080/orders 
 ![CB3](https://user-images.githubusercontent.com/87048674/131787487-c97832ed-75de-405a-af53-3ca61b2b335a.png)
 
 주문 요청이 과도할 경우 Circuit Breaker에 의하여 적절히 회로가 열리고 닫히면서, Payment 등으로 장애가 확대되지 않도록 자원을 보호하고 있음을 확인.
+
+
+
+## Autoscale (HPA)  
+주문요청이 증가하여 Cart에 주문상품이 지속적으로 쌓일 경우, 자원을 동적으로 추가 할당 할 수 있도록 Autoscale을 설정한다.
+- autoscaleout_cart.yaml에 resources 설정 추가
+```
+..(생략)..
+    spec:
+      containers:
+        - name: cart
+          image: 052937454741.dkr.ecr.ap-northeast-2.amazonaws.com/user02-cart:v1          
+          ports:
+            - containerPort: 8080
+          resources:
+            requests:
+              cpu: "200m"
+            limits:
+              cpu: "500m"  
+
+..(생략)..
+```
+- cart 서비스에 대한 replica 를 동적으로 늘려주도록 HPA 를 설정한다. 설정은 CPU 사용량이 50프로를 넘어서면 replica 를 10개까지 늘려준다.  
+```
+kubectl apply -f kubernetes/autoscaleout_cart.yaml
+kubectl autoscale deployment cart --cpu-percent=50 --min=1 --max=10
+```
+
+- Order 서비스를 통해서 Cart 에 부하를 주어, 스케일 아웃 정상작동을 확인.
+()
 
 
 
