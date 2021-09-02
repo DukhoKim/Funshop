@@ -471,5 +471,5 @@ kubectl get pvc -n funshop
 kubectl apply -f pod-with-pvc.yaml
 ```
 
-- df-k로 EFS mount 
-![PVC2](https://user-images.githubusercontent.com/87048674/131782814-193e8b28-2f52-42bc-a0bd-a793961e2d2b.png)
+- replicas 2 적용하여 Pod 생성 후, 한쪽 Pod에서 생성한 파일을 다른쪽 Pod에서 확인 함
+
