@@ -25,7 +25,7 @@
      · Deploy(완료)  
      · Circuit Breaker  
      · Autoscale (HPA)  
-     · Zero-Downtime deploy (readiness probe)  
+     · Zero-Downtime deploy (readiness probe)(완료)   
      · Persistence Volume  
      · Self-healing(Liveness probe)  
      
