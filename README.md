@@ -18,11 +18,11 @@
      · CQRS  
      · Correlation  
      · Req/Resp  
-     · Gateway  
+     · Gateway(완료)  
      · Polyglot  
 
 - 운영  
-     · Deply  
+     · Deploy(완료)  
      · Circuit Breaker  
      · Autoscale (HPA)  
      · Zero-Downtime deploy (readiness probe)  
