@@ -12,23 +12,24 @@
 - 체크포인트  
 - 분석/설계  
 
-- 구현:  
+- 구현  
      · DDD 의 적용  
      · Saga  
      · CQRS  
-Correlation  
-Req/Resp  
-Gateway  
-Polyglot  
+     · Correlation  
+     · Req/Resp  
+     · Gateway  
+     · Polyglot  
 
 - 운영  
-
-Deply  
-Circuit Breaker  
-Autoscale (HPA)  
-Zero-Downtime deploy (readiness probe)  
-Persistence Volume  
-Self-healing(Liveness probe)  
+     · Deply  
+     · Circuit Breaker  
+     · Autoscale (HPA)  
+     · Zero-Downtime deploy (readiness probe)  
+     · Persistence Volume  
+     · Self-healing(Liveness probe)  
+     
+     
 
 
 # 서비스 시나리오
