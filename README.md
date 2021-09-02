@@ -13,9 +13,9 @@
 - 분석/설계  
 
 - 구현:  
-     --DDD 의 적용  
-     --Saga  
-     --CQRS  
+     · DDD 의 적용  
+     · Saga  
+     · CQRS  
 Correlation  
 Req/Resp  
 Gateway  
