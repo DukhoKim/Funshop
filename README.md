@@ -593,5 +593,5 @@ kubectl create configmap funshop-mod --from-literal=mode=debug
 
 ...(생략)...
 ```
+![configmap1](https://user-images.githubusercontent.com/87048674/131821360-17fc8b47-0686-4cad-8c04-15270cef7eb8.png)
 
-()
