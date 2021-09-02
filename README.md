@@ -223,7 +223,7 @@ siege -c10 -t10S -v --content-type "application/json" 'http://order:8080/orders 
 
 ..(생략)..
 ```
-- cart 서비스에 대한 replica 를 동적으로 늘려주도록 HPA 를 설정한다. 설정은 CPU 사용량이 50프로를 넘어서면 replica 를 10개까지 늘려준다.  
+- cart 서비스에 대한 replica 를 동적으로 늘려주도록 HPA 를 설정한다. (CPU 사용량이 50프로를 넘어서면 replica 를 10개까지 확장)
 ```
 kubectl apply -f kubernetes/autoscaleout_cart.yaml
 kubectl autoscale deployment cart --cpu-percent=50 --min=1 --max=10
