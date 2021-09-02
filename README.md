@@ -98,8 +98,8 @@ server:
   port: 8080
 
 ```
-(gateway1.PNG)
-(gateway2.PNG)
+![gateway1](https://user-images.githubusercontent.com/87048674/131770319-e8ae49cf-06c0-47ff-9661-267f4bf62884.png)
+![gateway2](https://user-images.githubusercontent.com/87048674/131770321-a1d71116-e402-46ba-8f9f-00650ebb4843.png)
 
 
 
@@ -150,4 +150,4 @@ kubectl expose deploy payment --type=ClusterIP --port=8080 -n funshop
 kubectl expose deploy customer --type=ClusterIP --port=8080 -n funshop
 kubectl expose deploy gateway --type=LoadBalancer --port=8080 -n funshop
 ```
-(deploy.png)
+![deploy](https://user-images.githubusercontent.com/87048674/131770323-3e28b703-3005-49f1-913e-19045f1a79c7.png)
