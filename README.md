@@ -45,6 +45,15 @@
 7. 상품 정보 및 주문/Cart 상태를 조회 할 수 있다.(viewpage)  
 
 
+- 비기능적 요구사항
+
+담당자 부재 등으로 예약 내역을 확정할 수 없더라도 사용자는 중단 없이 숙소를 예약할 수 있다. (Event Pub/Sub)
+결제가 완료되어야 예약이 완료된다. (Req/Res)
+부하 발생 시 자동으로 처리 프로세스를 증가시킨다. (Autoscale)
+
+
+
+
 비기능적 요구사항
 
 트랜잭션  
@@ -151,6 +160,45 @@ kubectl expose deploy customer --type=ClusterIP --port=8080 -n funshop
 kubectl expose deploy gateway --type=LoadBalancer --port=8080 -n funshop
 ```
 ![deploy](https://user-images.githubusercontent.com/87048674/131770323-3e28b703-3005-49f1-913e-19045f1a79c7.png)
+
+
+## Circuit Breaker  
+Circuit Breaker 프레임워크의 선택: istio 사용하여 구현.  
+주문(order) → 결제(payment) 시의 연결이 Request/Response 로 연동하여 구현이 되어있고, 주문 요청이 과도할 경우 CB 를 통하여 장애격리.
+
+- DestinationRule 를 생성하여 circuit break 가 발생할 수 있도록 설정 최소 connection pool 설정
+```
+# destination-rule.yaml
+
+apiVersion: networking.istio.io/v1alpha3
+kind: DestinationRule
+metadata:
+  name: order
+spec:
+  host: order
+  trafficPolicy:
+    connectionPool:
+      http:
+        http1MaxPendingRequests: 1
+        maxRequestsPerConnection: 1
+```        
+
+- istio-injection 활성화
+()
+
+- 임계치 이하로 부하 발생시 100% 정상처리 확인
+```
+siege -c1 -t10S -v --content-type "application/json" 'http://order:8080/orders POST {"name": "TEST1", "status": "put myCart", "cardNo":"123456789999"}'
+```
+()
+
+- 임계치 초과하여 부하 발생시, 772건중 179건 실패하여, Availability 80.13% 확인
+```
+siege -c10 -t10S -v --content-type "application/json" 'http://order:8080/orders POST {"name": "TEST1", "status": "put myCart", "cardNo":"123456789999"}'
+```
+()
+
+
 
 
 ## Zero-Downtime deploy (readiness probe)
@@ -289,6 +337,7 @@ deployment_liveness.yml : customer 배포
 
 ## Persistence Volume
 신규로 생성한 EFS Storage에 Pod가 접근할 수 있도록 권한 및 서비스 설정.  
+
 1. EFS 생성: ClusterSharedNodeSecurityGroup 선택
 ![PVC1](https://user-images.githubusercontent.com/87048674/131782813-9ce75f3f-fd30-4e58-833d-4f48746992d0.png)
 
