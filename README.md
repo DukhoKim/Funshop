@@ -22,12 +22,12 @@
      · Polyglot  
 
 - 운영  
-     · Deploy(완료)  
-     · Circuit Breaker(완료)    
+     · Deploy  
+     · Circuit Breaker  
      · Autoscale (HPA)  
-     · Zero-Downtime deploy (Readiness probe)(완료)   
-     · Persistence Volume(완료)  
-     · Self-healing(Liveness probe)(완료)    
+     · Zero-Downtime deploy (Readiness probe)  
+     · Persistence Volume  
+     · Self-healing(Liveness probe)  
      
      
 
