@@ -151,3 +151,100 @@ kubectl expose deploy customer --type=ClusterIP --port=8080 -n funshop
 kubectl expose deploy gateway --type=LoadBalancer --port=8080 -n funshop
 ```
 ![deploy](https://user-images.githubusercontent.com/87048674/131770323-3e28b703-3005-49f1-913e-19045f1a79c7.png)
+
+
+## Zero-Downtime deploy (readiness probe)
+
+무정지 배포 TEST 비교를 위하여 readiness probe 설정이 없는 버전(deployment_readiness_v2.yml)의 yml과 readiness probe 설정이 있는 버전(deployment_readiness_v3.yml)의 yml을 준비한다.
+
+- deployment_readiness_v2.yml : customer 배포(readiness 설정없음, image:v2) 
+```
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: customer
+  labels:
+    app: customer
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: customer
+  template:
+    metadata:
+      labels:
+        app: customer
+    spec:
+      containers:
+        - name: customer
+          image: 052937454741.dkr.ecr.ap-northeast-2.amazonaws.com/user02-customer:v2
+          ports:
+            - containerPort: 8080
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: customer
+  labels:
+    app: customer
+spec:
+  ports:
+    - port: 8080
+      targetPort: 8080
+  selector:
+    app: customer
+```
+
+- deployment_readiness_v3.yml : customer 배포(readiness 설정있음, image:v2) 
+```
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: customer
+  labels:
+    app: customer
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: customer
+  template:
+    metadata:
+      labels:
+        app: customer
+    spec:
+      containers:
+        - name: customer
+          image: 052937454741.dkr.ecr.ap-northeast-2.amazonaws.com/user02-customer:v2
+          ports:
+            - containerPort: 8080
+          readinessProbe:
+            httpGet:
+              path: '/actuator/health'
+              port: 8080
+            initialDelaySeconds: 10
+            timeoutSeconds: 2
+            periodSeconds: 5
+            failureThreshold: 10
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: customer
+  labels:
+    app: customer
+spec:
+  ports:
+    - port: 8080
+      targetPort: 8080
+  selector:
+    app: customer
+```
+
+ readiness probe 설정이 없는 버전(deployment_readiness_v2.yml) 배포시 Error 발생 확인
+ 
+ readiness probe 설정이 있는 버전(deployment_readiness_v3.yml) 배포시 무중단 확인
