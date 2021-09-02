@@ -60,10 +60,10 @@
 - Event 도출  
 (이미지)  
 
-- Actor, Command 부착  
+- Command 부착  
 (이미지)  
 
-- Policy 부착  
+- Actor, Policy 부착  
 (이미지)  
 
 - Aggregate 부착  
