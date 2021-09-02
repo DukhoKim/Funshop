@@ -184,19 +184,35 @@ spec:
 ```        
 
 - istio-injection 활성화
-()
+![CB1](https://user-images.githubusercontent.com/87048674/131787482-2c549667-0ec1-4c79-b081-3bf80e71e159.png)
+
+- destination-rule.yaml 적용
+```
+apiVersion: networking.istio.io/v1alpha3
+kind: DestinationRule
+metadata:
+  name: order
+spec:
+  host: order
+  trafficPolicy:
+    connectionPool:
+      http:
+        http1MaxPendingRequests: 1
+        maxRequestsPerConnection: 1
+```
 
 - 임계치 이하로 부하 발생시 100% 정상처리 확인
 ```
 siege -c1 -t10S -v --content-type "application/json" 'http://order:8080/orders POST {"name": "TEST1", "status": "put myCart", "cardNo":"123456789999"}'
 ```
-()
+![CB2](https://user-images.githubusercontent.com/87048674/131787485-fa948f75-6b23-4b60-a6dc-9ddad73864a0.png)
+
 
 - 임계치 초과하여 부하 발생시, 772건중 179건 실패하여, Availability 80.13% 확인
 ```
 siege -c10 -t10S -v --content-type "application/json" 'http://order:8080/orders POST {"name": "TEST1", "status": "put myCart", "cardNo":"123456789999"}'
 ```
-()
+![CB3](https://user-images.githubusercontent.com/87048674/131787487-c97832ed-75de-405a-af53-3ca61b2b335a.png)
 
 
 
