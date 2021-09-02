@@ -163,7 +163,7 @@ kubectl expose deploy gateway --type=LoadBalancer --port=8080 -n funshop
 
 
 ## Circuit Breaker  
-Circuit Breaker 프레임워크의 선택: istio 사용하여 구현.  
+Circuit Breaker 프레임워크: istio 사용하여 구현.  
 주문(order) → 결제(payment) 시의 연결이 Request/Response 로 연동하여 구현이 되어있고, 주문 요청이 과도할 경우 CB 를 통하여 장애격리.
 
 - DestinationRule 를 생성하여 circuit break 가 발생할 수 있도록 설정 최소 connection pool 설정
@@ -186,20 +186,6 @@ spec:
 - istio-injection 활성화
 ![CB1](https://user-images.githubusercontent.com/87048674/131787482-2c549667-0ec1-4c79-b081-3bf80e71e159.png)
 
-- destination-rule.yaml 적용
-```
-apiVersion: networking.istio.io/v1alpha3
-kind: DestinationRule
-metadata:
-  name: order
-spec:
-  host: order
-  trafficPolicy:
-    connectionPool:
-      http:
-        http1MaxPendingRequests: 1
-        maxRequestsPerConnection: 1
-```
 
 - 임계치 이하로 부하 발생시 100% 정상처리 확인
 ```
