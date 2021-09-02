@@ -58,16 +58,16 @@
 
 - MSAEZ에서 Event Storming 수행  
 - Event 도출  
-(이미지)  
+![m1](https://user-images.githubusercontent.com/87048674/131806066-b0ba60c6-bb55-4b60-9741-3a31bb8d4a21.png)
 
 - Command 부착  
-(이미지)  
+![m2](https://user-images.githubusercontent.com/87048674/131806070-1bc85317-1070-4789-9119-d053fb22eb75.png)
 
 - Actor, Policy 부착  
-(이미지)  
+![m3](https://user-images.githubusercontent.com/87048674/131806072-fcca7d4c-792e-4812-92dd-d8ebf16a4463.png)
 
 - Aggregate 부착  
-(이미지)  
+![m4](https://user-images.githubusercontent.com/87048674/131806074-bdb9419a-7724-4191-bad1-b26527186994.png)
 
 - View 추가 및 Bounded Context 묶기  
 (이미지)  
