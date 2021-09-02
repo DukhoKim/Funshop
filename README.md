@@ -471,5 +471,8 @@ kubectl get pvc -n funshop
 kubectl apply -f pod-with-pvc.yaml
 ```
 
-- replicas 2 적용하여 Pod 생성 후, 한쪽 Pod에서 생성한 파일을 다른쪽 Pod에서 확인 함
+- replicas 2 적용하여 Pod 생성
+![PVC4](https://user-images.githubusercontent.com/87048674/131805276-4613be77-1100-4c62-ba45-2db8fbe5a444.png)  
 
+- 한쪽 Pod에서 생성한 파일을 다른쪽 Pod에서 확인     
+![PVC3](https://user-images.githubusercontent.com/87048674/131805271-7c184b5d-03fc-4c4c-9587-24969d97de5a.png)
