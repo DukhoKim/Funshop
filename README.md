@@ -245,6 +245,8 @@ spec:
     app: customer
 ```
 
- readiness probe 설정이 없는 버전(deployment_readiness_v2.yml) 배포시 Error 발생 확인
- 
- readiness probe 설정이 있는 버전(deployment_readiness_v3.yml) 배포시 무중단 확인
+- Readiness probe 설정이 없는 버전(deployment_readiness_v2.yml) 배포시 Error 발생 확인
+![readiness1](https://user-images.githubusercontent.com/87048674/131773313-13c01eaa-81fa-4fd0-bebe-f109599fd9e6.png)
+
+- Readiness probe 설정이 있는 버전(deployment_readiness_v3.yml) 배포시 무중단 확인
+![readiness2](https://user-images.githubusercontent.com/87048674/131773317-4ec97bee-0afd-400f-92dc-09068c537215.png)
