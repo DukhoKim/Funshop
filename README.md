@@ -284,3 +284,7 @@ deployment_liveness.yml : customer 배포
 컨테이너 실행 후 90초 동은 정상이나 이후 /tmp/healthy 파일이 삭제되어 livenessProbe에서 실패를 리턴하게 됨
 - watch kubectl get pod 로 모니터링
 ![liveness1](https://user-images.githubusercontent.com/87048674/131775735-2d31b802-29bb-4ce5-b2cc-8f4b4489ea8f.png)
+
+
+
+## Persistence Volume
