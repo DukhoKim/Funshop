@@ -100,3 +100,54 @@ server:
 ```
 (gateway1.PNG)
 (gateway2.PNG)
+
+
+
+## Deploy
+
+각자의 source 위치에서 mvn package 적용 > Docker build > ECR 생성 > Docker push 순으로 진행 후, 배포하여 서비스를 생성한다.
+```
+(1) order
+mvn package
+docker build -t 052937454741.dkr.ecr.ap-northeast-2.amazonaws.com/user02-order:v1 .
+aws ecr create-repository --repository-name user02-order --region ap-northeast-2
+docker push 052937454741.dkr.ecr.ap-northeast-2.amazonaws.com/user02-order:v1
+
+(2) cart
+mvn package
+docker build -t 052937454741.dkr.ecr.ap-northeast-2.amazonaws.com/user02-cart:v1 .
+aws ecr create-repository --repository-name user02-cart --region ap-northeast-2
+docker push 052937454741.dkr.ecr.ap-northeast-2.amazonaws.com/user02-cart:v1
+
+(3) payment
+mvn package
+docker build -t 052937454741.dkr.ecr.ap-northeast-2.amazonaws.com/user02-payment:v1 .
+aws ecr create-repository --repository-name user02-payment --region ap-northeast-2
+docker push 052937454741.dkr.ecr.ap-northeast-2.amazonaws.com/user02-payment:v1
+
+(4) customer
+mvn package
+docker build -t 052937454741.dkr.ecr.ap-northeast-2.amazonaws.com/user02-customer:v1 .
+aws ecr create-repository --repository-name user02-customer --region ap-northeast-2
+docker push 052937454741.dkr.ecr.ap-northeast-2.amazonaws.com/user02-customer:v1
+
+(5) gateway
+mvn package
+docker build -t 052937454741.dkr.ecr.ap-northeast-2.amazonaws.com/user02-gateway:v1 .
+aws ecr create-repository --repository-name user02-gateway --region ap-northeast-2
+docker push 052937454741.dkr.ecr.ap-northeast-2.amazonaws.com/user02-gateway:v1
+
+(6) 배포
+kubectl create deploy order --image=052937454741.dkr.ecr.ap-northeast-2.amazonaws.com/user02-order:v1 -n funshop
+kubectl create deploy cart --image=052937454741.dkr.ecr.ap-northeast-2.amazonaws.com/user02-cart:v1 -n funshop
+kubectl create deploy payment --image=052937454741.dkr.ecr.ap-northeast-2.amazonaws.com/user02-payment:v1 -n funshop
+kubectl create deploy customer --image=052937454741.dkr.ecr.ap-northeast-2.amazonaws.com/user02-customer:v1 -n funshop
+kubectl create deploy gateway --image=052937454741.dkr.ecr.ap-northeast-2.amazonaws.com/user02-gateway:v1 -n funshop
+
+kubectl expose deploy order --type=ClusterIP --port=8080 -n funshop
+kubectl expose deploy cart --type=ClusterIP --port=8080 -n funshop
+kubectl expose deploy payment --type=ClusterIP --port=8080 -n funshop
+kubectl expose deploy customer --type=ClusterIP --port=8080 -n funshop
+kubectl expose deploy gateway --type=LoadBalancer --port=8080 -n funshop
+```
+(deploy.png)
