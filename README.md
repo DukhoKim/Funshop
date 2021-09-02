@@ -288,3 +288,48 @@ deployment_liveness.yml : customer 배포
 
 
 ## Persistence Volume
+신규로 생성한 EFS Storage에 Pod가 접근할 수 있도록 권한 및 서비스 설정.
+1.EFS 생성: ClusterSharedNodeSecurityGroup 선택
+()
+
+2.EFS계정 생성 및 Role 바인딩
+```
+- ServerAccount 생성
+kubectl apply -f efs-sa.yml
+kubectl get ServiceAccount efs-provisioner -n yanolza
+
+
+-SA(efs-provisioner)에 권한(rbac) 설정
+kubectl apply -f efs-rbac.yaml
+
+# efs-provisioner-deploy.yml 파일 수정
+value: fs-a638b6c6
+value: ap-northeast-2
+server: fs-a638b6c6.efs.ap-northeast-2.amazonaws.com
+```
+
+3.EFS provisioner 설치
+```
+kubectl apply -f efs-provisioner-deploy.yml
+kubectl get Deployment efs-provisioner -n funshop
+```
+
+4.EFS storageclass 생성
+```
+kubectl apply -f efs-storageclass.yaml
+kubectl get sc aws-efs -n funshop
+```
+
+5.PVC 생성
+```
+kubectl apply -f volume-pvc.yml
+kubectl get pvc -n funshop
+```
+
+6.Create Pod with PersistentVolumeClaim
+```
+kubectl apply -f pod-with-pvc.yaml
+```
+
+-df-k로 EFS에 접근 가능
+()
