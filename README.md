@@ -9,7 +9,6 @@
 # Table of Contents
 
 - 서비스 시나리오  
-- 체크포인트  
 - 분석/설계  
 
 - 구현  
@@ -46,27 +45,76 @@
 
 
 - 비기능적 요구사항
-
-담당자 부재 등으로 예약 내역을 확정할 수 없더라도 사용자는 중단 없이 숙소를 예약할 수 있다. (Event Pub/Sub)
-결제가 완료되어야 예약이 완료된다. (Req/Res)
-부하 발생 시 자동으로 처리 프로세스를 증가시킨다. (Autoscale)
-
-
+     · 장애격리 : 과도한 주문요청 Traffic 발생 시 Circuit breaker 를 통해 장애 확대를 회피한다.
+     · Autoscale : 과도한 주문요청 Traffic 발생 시, 추가 자원할당을 통해 서비스 안정성을 확보한다.
+     · 무정지배포 : 배포시 서비스 중단이 없도록 한다.
+     · Self-healing : 서비스의 장애여부를 지속적으로 확인하고, 장애 서비스는 제외한다.
 
 
-비기능적 요구사항
 
-트랜잭션  
-결제가 되지 않은 예약 건은 성립되지 않아야 한다. (Sync 호출)  
+# 분석/설계  
 
-장애격리  
-숙소 등록 및 메시지 전송 기능이 수행되지 않더라도 예약은 365일 24시간 받을 수 있어야 한다 Async (event-driven), Eventual Consistency
-예약 시스템이 과중되면 사용자를 잠시동안 받지 않고 잠시 후에 하도록 유도한다 Circuit breaker, fallback  
+## Event Storming
 
-성능  
-모든 방에 대한 정보 및 예약 상태 등을 한번에 확인할 수 있어야 한다 (CQRS)  
-예약의 상태가 바뀔 때마다 메시지로 알림을 줄 수 있어야 한다 (Event driven)
+- MSAEZ에서 Event Storming 수행  
+- Event 도출  
+(이미지)  
 
+- Actor, Command 부착  
+(이미지)  
+
+- Policy 부착  
+(이미지)  
+
+- Aggregate 부착  
+(이미지)  
+
+- View 추가 및 Bounded Context 묶기
+(이미지)  
+
+- 완성 모형: Pub/Sub, Req/Res 추가
+(이미지)   
+
+
+## 기능적/비기능적 요구사항 커버 여부 검증
+- 기능적 요구사항  
+
+1. 고객이 상품을 선택하여 주문한다.(O)  
+2. 주문한 상품은 Cart에 담겨서 결제를 기다린다.(O)  
+3. 고객이 주문에 대한 결제를 한다.(O)  
+4. 결제가 승인되면 Cart의 상품이 주문 완료된다(O)   
+5. 고객이 주문을 취소할 수 있다.(O)    
+6. 주문이 취소되면 결제가 취소된다.(O)  
+7. 상품 정보 및 주문/Cart 상태를 조회 할 수 있다.(O)    
+
+
+- 비기능적 요구사항
+     · 장애격리 : 과도한 주문요청 Traffic 발생 시 Circuit breaker 를 통해 장애 확대를 회피한다.(O)  
+     · Autoscale : 과도한 주문요청 Traffic 발생 시, 추가 자원할당을 통해 서비스 안정성을 확보한다.(O)  
+     · 무정지배포 : 배포시 서비스 중단이 없도록 한다.(O)  
+     · Self-healing : 서비스의 장애여부를 지속적으로 확인하고, 장애 서비스는 제외한다.(O)  
+
+
+## Hexagonal Architecture Diagram
+(이미지)
+```
+Inbound adaptor와 Outbound adaptor를 구분함  
+호출관계에서 PubSub 과 Req/Resp 를 구분함  
+서브 도메인과 바운디드 컨텍스트를 분리함  
+```
+
+
+# 구현
+
+## DDD 의 적용  
+
+## Saga  
+
+## CQRS  
+
+## Correlation  
+
+## Req/Resp  
 
 ## Gateway
 gateway 스프링부트 App을 추가 후 application.yaml내에 각 마이크로 서비스의 routes 를 추가하고 gateway 서버의 포트를 8080 으로 설정함
@@ -111,6 +159,9 @@ server:
 ![gateway2](https://user-images.githubusercontent.com/87048674/131770321-a1d71116-e402-46ba-8f9f-00650ebb4843.png)
 
 
+## Polyglot  
+
+# 운영  
 
 ## Deploy
 
