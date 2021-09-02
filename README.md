@@ -290,7 +290,7 @@ deployment_liveness.yml : customer 배포
 ## Persistence Volume
 신규로 생성한 EFS Storage에 Pod가 접근할 수 있도록 권한 및 서비스 설정.
 1.EFS 생성: ClusterSharedNodeSecurityGroup 선택
-()
+![PVC1](https://user-images.githubusercontent.com/87048674/131782813-9ce75f3f-fd30-4e58-833d-4f48746992d0.png)
 
 2.EFS계정 생성 및 Role 바인딩
 ```
@@ -332,4 +332,4 @@ kubectl apply -f pod-with-pvc.yaml
 ```
 
 -df-k로 EFS에 접근 가능
-()
+![PVC2](https://user-images.githubusercontent.com/87048674/131782814-193e8b28-2f52-42bc-a0bd-a793961e2d2b.png)
