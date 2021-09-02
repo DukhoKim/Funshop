@@ -27,6 +27,7 @@
      · Zero-Downtime deploy (Readiness probe)  
      · Persistence Volume  
      · Self-healing(Liveness probe)  
+     · ConfigMap   
      
      
 
@@ -570,3 +571,27 @@ kubectl apply -f pod-with-pvc.yaml
 
 - 한쪽 Pod에서 생성한 파일을 다른쪽 Pod에서 확인     
 ![PVC3](https://user-images.githubusercontent.com/87048674/131805271-7c184b5d-03fc-4c4c-9587-24969d97de5a.png)
+
+## ConfigMap
+
+- ConfigMap 생성
+```
+kubectl create configmap funshop-mod --from-literal=mode=debug
+```
+
+- yaml 파일 적용
+```
+# autoscaleout_cart.yaml 에 설정 추가
+...(생략)...
+
+          env:
+            - name: debug
+              valueFrom:
+                configMapKeyRef:
+                  name: funshop-mod
+                  key: mode
+
+...(생략)...
+```
+
+()
