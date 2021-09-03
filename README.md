@@ -14,7 +14,6 @@
 - 구현  
      · DDD 의 적용       
      · CQRS  
-     · Correlation  
      · Req/Resp  
      · Gateway  
      · Polyglot  
@@ -206,14 +205,268 @@ public interface OrderRepository extends PagingAndSortingRepository<Order, Long>
 ```
 - 적용 후 REST API 의 테스트
 ```
-http http~~
+ie98dh@LAPTOP-7QPQK9AV:~/project/funshop$ http http://localhost:8088/orders id=1 name=David cardNo=12345678999 status=ordered
+HTTP/1.1 201 Created
+Content-Type: application/json;charset=UTF-8
+Date: Fri, 03 Sep 2021 00:40:34 GMT
+Location: http://localhost:8081/orders/1
+transfer-encoding: chunked
+
+{
+    "_links": {
+        "order": {
+            "href": "http://localhost:8081/orders/1"
+        },
+        "self": {
+            "href": "http://localhost:8081/orders/1"
+        }
+    },
+    "cardNo": 12345678999,
+    "name": "David",
+    "status": "ordered"
+}
+
+ie98dh@LAPTOP-7QPQK9AV:~/project/funshop$ http http://localhost:8088/orders/1
+HTTP/1.1 200 OK
+Content-Type: application/hal+json;charset=UTF-8
+Date: Fri, 03 Sep 2021 00:40:41 GMT
+transfer-encoding: chunked
+
+{
+    "_links": {
+        "order": {
+            "href": "http://localhost:8081/orders/1"
+        },
+        "self": {
+            "href": "http://localhost:8081/orders/1"
+        }
+    },
+    "cardNo": 12345678999,
+    "name": "David",
+    "status": "ordered"
+}
 ```
 
 ## CQRS  
+CQRS 구현을 위해 고객의 주문/결제 상황을 확인할 수 있는 MyPage를 구성
+```
+ie98dh@LAPTOP-7QPQK9AV:~/project/funshop$ http http://localhost:8088/mypages/1
+HTTP/1.1 200 OK
+Content-Type: application/hal+json;charset=UTF-8
+Date: Fri, 03 Sep 2021 00:57:09 GMT
+transfer-encoding: chunked
 
-## Correlation  
+{
+    "_links": {
+        "mypage": {
+            "href": "http://localhost:8084/mypages/1"
+        },
+        "self": {
+            "href": "http://localhost:8084/mypages/1"
+        }
+    },
+    "cancellationId": null,
+    "cartId": 1,
+    "name": "David",
+    "orderId": 1,
+    "status": "In your cart"
+}
+```
 
-## Req/Resp  
+## Req/Resp (동기식 호출)
+주문(Order)->결제(Payment) 간의 호출은 동기식 일관성을 유지하는 트랜잭션으로 처리하기로 하였다. 호출 프로토콜은 이미 앞서 Rest Repository 에 의해 노출되어있는 REST 서비스를 FeignClient 를 이용하여 호출하도록 한다.
+
+결제서비스를 호출하기 위하여 Stub과 (FeignClient) 를 이용하여 Service 대행 인터페이스 (Proxy) 를 구현
+```
+#PaymentListService.java
+
+@FeignClient(name="payment", url="${api.payment.url}")
+public interface PaymentListService {
+    @RequestMapping(method= RequestMethod.POST, path="/paymentLists")
+    public void pay(@RequestBody PaymentList paymentList);
+
+}
+```
+
+주문을 받은 직후(@PostPersist) 결제를 요청하도록 처리
+```
+# Order.java (Entity)
+
+    @PostPersist
+    public void onPostPersist(){
+        Ordered ordered = new Ordered();
+        BeanUtils.copyProperties(this, ordered);
+        ordered.publishAfterCommit();
+
+        funshop.external.PaymentList paymentList = new funshop.external.PaymentList();
+                
+        System.out.println("this.id() : " + this.id);
+        paymentList.setOrderId(this.id);
+        paymentList.setStatus("Into your cart");
+        paymentList.setCardNo(this.cardNo);      
+        
+        
+        OrderApplication.applicationContext.getBean(funshop.external.PaymentListService.class)
+            .pay(paymentList);
+
+    }
+```
+
+동기식 호출에서는 호출 시간에 따른 타임 커플링이 발생하며, 결제 시스템이 장애가 나면 주문도 못받는다는 것을 확인:
+```
+# 결제 (payment) 서비스를 잠시 내려놓음 (ctrl+c)
+
+# 주문요청
+ie98dh@LAPTOP-7QPQK9AV:~/project/funshop$ http http://localhost:8088/orders id=2 name=JiSung.Park cardNo=12345678999 status=ordered
+HTTP/1.1 500 Internal Server Error
+Content-Type: application/json;charset=UTF-8
+Date: Fri, 03 Sep 2021 01:10:48 GMT
+transfer-encoding: chunked
+
+{
+    "error": "Internal Server Error",
+    "message": "Could not commit JPA transaction; nested exception is javax.persistence.RollbackException: Error while committing the transaction",
+    "path": "/orders",
+    "status": 500,
+    "timestamp": "2021-09-03T01:10:48.109+0000"
+}
+
+# 결제 (payment) 재기동
+mvn spring-boot:run
+
+#주문처리
+ie98dh@LAPTOP-7QPQK9AV:~/project/funshop$ http http://localhost:8088/orders id=2 name=JiSung.Park cardNo=12345678999 status=ordered
+HTTP/1.1 201 Created
+Content-Type: application/json;charset=UTF-8
+Date: Fri, 03 Sep 2021 01:12:33 GMT
+Location: http://localhost:8081/orders/3
+transfer-encoding: chunked
+
+{
+    "_links": {
+        "order": {
+            "href": "http://localhost:8081/orders/3"
+        },
+        "self": {
+            "href": "http://localhost:8081/orders/3"
+        }
+    },
+    "cardNo": 12345678999,
+    "name": "JiSung.Park",
+    "status": "ordered"
+}
+```
+
+## Pub/Sub (비동기식 호출)
+결제가 이루어진 후에 Cart 서비스로 이를 알려주는 행위는 동기식이 아니라 비 동기식으로 처리하여 Cart 시스템의 처리를 위하여 결제주문이 블로킹 되지 않아도록 처리한다.
+
+- 이를 위하여 결제이력에 기록을 남긴 후에 곧바로 결제승인이 되었다는 도메인 이벤트를 카프카로 송출한다(Publish)
+```
+package funshop;
+
+ ...
+    @PostPersist
+    public void onPostPersist(){
+        PaymentApproved paymentApproved = new PaymentApproved();
+        paymentApproved.setStatus("Pay OK");
+        BeanUtils.copyProperties(this, paymentApproved);
+        paymentApproved.publishAfterCommit();
+```
+
+- Cart 서비스에서는 결제승인 이벤트에 대해서 이를 수신하여 자신의 정책을 처리하도록 PolicyHandler 를 구현한다:
+```
+package funshop;
+
+...
+@Service
+public class PolicyHandler{
+    @Autowired CartRepository cartRepository;
+    @Autowired CancellationRepository cancellationRepository;
+
+    @StreamListener(KafkaProcessor.INPUT)
+    public void wheneverPaymentApproved_AcceptCart(@Payload PaymentApproved paymentApproved){
+
+        if(!paymentApproved.validate()) return;
+
+        System.out.println("\n\n##### listener AcceptCart : " + paymentApproved.toJson() + "\n\n");
+
+        Cart cart = new Cart();
+        cart.setStatus("Payment Complete");
+        cart.setOrderId(paymentApproved.getOrderId());
+        cart.setId(paymentApproved.getOrderId());
+        cartRepository.save(cart);
+    }    
+```
+
+- Cart 서비스는 주문/결제와 완전히 분리되어있으며, 이벤트 수신에 따라 처리되기 때문에, Cart 서비스가 유지보수로 인해 잠시 내려간 상태라도 주문을 받는데 문제가 없다:
+```
+#  Cart 서비스 (cart) 를 잠시 내려놓음 (ctrl+c)
+
+#주문처리
+ie98dh@LAPTOP-7QPQK9AV:~/project/funshop$ http http://localhost:8088/orders id=3 name=Steve.J cardNo=12345678999 status=ordered
+HTTP/1.1 201 Created
+Content-Type: application/json;charset=UTF-8
+Date: Fri, 03 Sep 2021 01:29:08 GMT
+Location: http://localhost:8081/orders/3
+transfer-encoding: chunked
+
+{
+    "_links": {
+        "order": {
+            "href": "http://localhost:8081/orders/3"
+        },
+        "self": {
+            "href": "http://localhost:8081/orders/3"
+        }
+    },
+    "cardNo": 12345678999,
+    "name": "Steve.J",
+    "status": "ordered"
+}
+
+#주문상태 확인
+ie98dh@LAPTOP-7QPQK9AV:~/project/funshop$ http http://localhost:8088/orders/3
+HTTP/1.1 200 OK
+Content-Type: application/hal+json;charset=UTF-8
+Date: Fri, 03 Sep 2021 01:29:47 GMT
+transfer-encoding: chunked
+
+{
+    "_links": {
+        "order": {
+            "href": "http://localhost:8081/orders/3"
+        },
+        "self": {
+            "href": "http://localhost:8081/orders/3"
+        }
+    },
+    "cardNo": 12345678999,
+    "name": "Steve.J",
+    "status": "ordered"
+}
+	    
+#Cart 서비스 기동
+mvn spring-boot:run
+
+#주문상태 확인
+http localhost:8084/mypages     # 예약 상태가 "Reservation Complete"으로 확인
+
+ {
+                "_links": {
+                    "mypage": {
+                        "href": "http://localhost:8084/mypages/2"
+                    },
+                    "self": {
+                        "href": "http://localhost:8084/mypages/2"
+                    }
+                },
+                "cancellationId": null,
+                "name": "ChoiJung",
+                "orderId": 2,
+                "reservationId": 1,
+                "status": "Reservation Complete"
+            }
+
 
 ## Gateway
 gateway 스프링부트 App을 추가 후 application.yaml내에 각 마이크로 서비스의 routes 를 추가하고 gateway 서버의 포트를 8080 으로 설정함
