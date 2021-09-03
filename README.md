@@ -15,6 +15,7 @@
      · DDD 의 적용       
      · CQRS  
      · Req/Resp  
+     · Correlation       
      · Gateway  
      · Polyglot  
 
@@ -403,70 +404,163 @@ public class PolicyHandler{
 #  Cart 서비스 (cart) 를 잠시 내려놓음 (ctrl+c)
 
 #주문처리
-ie98dh@LAPTOP-7QPQK9AV:~/project/funshop$ http http://localhost:8088/orders id=3 name=Steve.J cardNo=12345678999 status=ordered
+ie98dh@LAPTOP-7QPQK9AV:~/project/funshop$ http http://localhost:8088/orders id=1 name=David cardNo=12345678999 status=ordered
 HTTP/1.1 201 Created
 Content-Type: application/json;charset=UTF-8
-Date: Fri, 03 Sep 2021 01:29:08 GMT
-Location: http://localhost:8081/orders/3
+Date: Fri, 03 Sep 2021 01:46:47 GMT
+Location: http://localhost:8081/orders/1
 transfer-encoding: chunked
 
 {
     "_links": {
         "order": {
-            "href": "http://localhost:8081/orders/3"
+            "href": "http://localhost:8081/orders/1"
         },
         "self": {
-            "href": "http://localhost:8081/orders/3"
+            "href": "http://localhost:8081/orders/1"
         }
     },
     "cardNo": 12345678999,
-    "name": "Steve.J",
+    "name": "David",
     "status": "ordered"
 }
 
 #주문상태 확인
-ie98dh@LAPTOP-7QPQK9AV:~/project/funshop$ http http://localhost:8088/orders/3
+ie98dh@LAPTOP-7QPQK9AV:~/project/funshop$ http http://localhost:8088/orders/1
 HTTP/1.1 200 OK
 Content-Type: application/hal+json;charset=UTF-8
-Date: Fri, 03 Sep 2021 01:29:47 GMT
+Date: Fri, 03 Sep 2021 01:47:22 GMT
 transfer-encoding: chunked
 
 {
     "_links": {
         "order": {
-            "href": "http://localhost:8081/orders/3"
+            "href": "http://localhost:8081/orders/1"
         },
         "self": {
-            "href": "http://localhost:8081/orders/3"
+            "href": "http://localhost:8081/orders/1"
         }
     },
     "cardNo": 12345678999,
-    "name": "Steve.J",
+    "name": "David",
     "status": "ordered"
 }
 	    
 #Cart 서비스 기동
 mvn spring-boot:run
 
-#주문상태 확인
-http localhost:8084/mypages     # 예약 상태가 "Reservation Complete"으로 확인
+#Cart 상태 확인
+ie98dh@LAPTOP-7QPQK9AV:~/project/funshop$ http http://localhost:8088/carts/1
+HTTP/1.1 200 OK
+Content-Type: application/hal+json;charset=UTF-8
+Date: Fri, 03 Sep 2021 01:50:59 GMT
+transfer-encoding: chunked
 
- {
-                "_links": {
-                    "mypage": {
-                        "href": "http://localhost:8084/mypages/2"
-                    },
-                    "self": {
-                        "href": "http://localhost:8084/mypages/2"
-                    }
-                },
-                "cancellationId": null,
-                "name": "ChoiJung",
-                "orderId": 2,
-                "reservationId": 1,
-                "status": "Reservation Complete"
-            }
+{
+    "_links": {
+        "cart": {
+            "href": "http://localhost:8083/carts/1"
+        },
+        "self": {
+            "href": "http://localhost:8083/carts/1"
+        }
+    },
+    "orderId": 1,
+    "status": "Payment Complete"
+}
+```
 
+## Correlation
+PolicyHandler에서 처리 시 어떤 건에 대한 처리인지를 구별하기 위한 Correlation-key 구현을 이벤트 클래스 안의 변수로 전달받아 서비스간 연관된 처리를 구현하였습니다.
+주문을 하면 동시에 연관된 결제, Cart 서비스의 상태가 변경이 되고, 주문 취소를 수행하면 다시 연관된 서비스의 데이터가 변경되는 것을 확인할 수 있습니다.
+```
+# 주문
+ie98dh@LAPTOP-7QPQK9AV:~/project/funshop$ http http://localhost:8088/orders id=2 name=TestGuy cardNo=000011119999 status=ordered
+HTTP/1.1 201 Created
+Content-Type: application/json;charset=UTF-8
+Date: Fri, 03 Sep 2021 01:54:14 GMT
+Location: http://localhost:8081/orders/2
+transfer-encoding: chunked
+
+{
+    "_links": {
+        "order": {
+            "href": "http://localhost:8081/orders/2"
+        },
+        "self": {
+            "href": "http://localhost:8081/orders/2"
+        }
+    },
+    "cardNo": 11119999,
+    "name": "TestGuy",
+    "status": "ordered"
+}
+
+# 주문 확인
+ie98dh@LAPTOP-7QPQK9AV:~/project/funshop$ http http://localhost:8088/carts/2
+HTTP/1.1 200 OK
+Content-Type: application/hal+json;charset=UTF-8
+Date: Fri, 03 Sep 2021 01:55:03 GMT
+transfer-encoding: chunked
+
+{
+    "_links": {
+        "cart": {
+            "href": "http://localhost:8083/carts/2"
+        },
+        "self": {
+            "href": "http://localhost:8083/carts/2"
+        }
+    },
+    "orderId": 2,
+    "status": "Payment Complete"
+}
+
+# 주문 취소
+ie98dh@LAPTOP-7QPQK9AV:~/project/funshop$ http http://localhost:8088/orders id=2 name=TestGuy cardNo=000011119999 status=canceled
+HTTP/1.1 201 Created
+Content-Type: application/json;charset=UTF-8
+Date: Fri, 03 Sep 2021 01:55:48 GMT
+Location: http://localhost:8081/orders/2
+transfer-encoding: chunked
+
+{
+    "_links": {
+        "order": {
+            "href": "http://localhost:8081/orders/2"
+        },
+        "self": {
+            "href": "http://localhost:8081/orders/2"
+        }
+    },
+    "cardNo": 11119999,
+    "name": "TestGuy",
+    "status": "canceled"
+}
+
+# 주문 취소 확인
+ie98dh@LAPTOP-7QPQK9AV:~/project/funshop$ http http://localhost:8088/mypages/2
+HTTP/1.1 200 OK
+Content-Type: application/hal+json;charset=UTF-8
+Date: Fri, 03 Sep 2021 01:57:02 GMT
+transfer-encoding: chunked
+
+{
+    "_links": {
+        "mypage": {
+            "href": "http://localhost:8084/mypages/2"
+        },
+        "self": {
+            "href": "http://localhost:8084/mypages/2"
+        }
+    },
+    "cancellationId": null,
+    "cartId": 2,
+    "name": "TestGuy",
+    "orderId": 2,
+    "status": "Cart Canceled"
+}
+```
 
 ## Gateway
 gateway 스프링부트 App을 추가 후 application.yaml내에 각 마이크로 서비스의 routes 를 추가하고 gateway 서버의 포트를 8080 으로 설정함
